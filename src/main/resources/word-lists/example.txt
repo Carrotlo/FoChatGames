@@ -1,0 +1,7 @@
+diamond
+emerald
+golden apple
+netherite sword
+creeper
+villager
+end portal

@@ -1,0 +1,9 @@
+enabled: true
+chance: 100
+display-name: "Guess The Number"
+minimum: 1
+maximum: 100
+rewards:
+  - type: console_command
+    chance: 100
+    command: "give %player% emerald 1"

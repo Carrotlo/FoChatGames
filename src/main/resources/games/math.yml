@@ -1,0 +1,13 @@
+enabled: true
+chance: 100
+display-name: "Math"
+minimum: 1
+maximum: 1000
+operators:
+  - add
+  - subtract
+  - multiply
+rewards:
+  - type: console_command
+    chance: 100
+    command: "give %player% emerald 1"

@@ -1,0 +1,70 @@
+# Need help or want support? Join the Discord: https://discord.gg/kEF77QCfu7
+
+# General chat game behavior.
+general:
+  # If false, automatic games will not start. Manual /chatgames start still works.
+  enabled: true
+  # Start games automatically after the configured delay.
+  auto-start: true
+  # Seconds between automatic games. Use one number or a range like "180-300".
+  start-time-seconds: "180-300"
+  # How long a game can stay active before ending without a winner.
+  game-duration-seconds: 45
+  # Minimum online eligible players needed before automatic games start.
+  minimum-players: 1
+  # If true, answers must match capitalization.
+  case-sensitive: false
+  # If true, players get a warning when answer matches except capitalization.
+  notify-wrong-capitalization: true
+  # If true, the winning chat message is hidden from normal chat.
+  cancel-winning-chat: true
+  # Listener priority for answer detection. Valid: LOWEST, LOW, NORMAL, HIGH, HIGHEST, MONITOR.
+  chat-listener-priority: NORMAL
+  # If true, console prints extra diagnostic messages with the fixed plugin prefix.
+  debug: false
+  # File logging works like debug mode and saves plugin activity to logs/latest.log. Default: false
+  file-logging: false
+native-dialogs:
+  # Uses Minecraft's native dialog/input screens for admin editor text/number input when supported.
+  # Requires a compatible Paper or Paper-fork server with the Dialog API.
+  # Spigot and older versions automatically fall back to chat input mode.
+  # Set this to false to always use chat input mode.
+  enabled: true
+  # Sends admins a short warning when native dialogs are enabled but unavailable and the editor falls back.
+  warn-on-fallback: true
+
+# Players in these worlds cannot see or win chat games.
+world-blacklist:
+  - disabled_world
+
+# Reward rolling behavior.
+rewards:
+  # independent = every reward rolls its own chance.
+  # weighted_one = one reward is picked by chance weight.
+  chance-mode: independent
+
+# Broadcast channels. All text bodies are in messages.yml.
+broadcasts:
+  chat: true
+  titles: true
+  subtitles: true
+  actionbar: true
+  sounds: true
+
+# Default sound keys. Set enabled false to disable that sound.
+sounds:
+  start:
+    enabled: true
+    sound: BLOCK_NOTE_BLOCK_PLING
+    volume: 1.0
+    pitch: 1.2
+  win:
+    enabled: true
+    sound: ENTITY_PLAYER_LEVELUP
+    volume: 1.0
+    pitch: 1.0
+  end:
+    enabled: true
+    sound: BLOCK_NOTE_BLOCK_BASS
+    volume: 0.8
+    pitch: 0.7

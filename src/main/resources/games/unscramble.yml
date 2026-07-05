@@ -1,0 +1,14 @@
+enabled: true
+chance: 100
+display-name: "Unscramble"
+word-lists:
+  - example
+  - minecraft-blocks
+  - minecraft-items
+  - minecraft-entities
+smart-scramble: true
+randomized-text: false
+rewards:
+  - type: console_command
+    chance: 100
+    command: "give %player% emerald 1"

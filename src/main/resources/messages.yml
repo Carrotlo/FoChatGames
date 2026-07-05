@@ -1,0 +1,90 @@
+tokens:
+  prefix: "{theme}FoChatGames &8» {muted}"
+  theme: "#03fc88"
+  muted: "#a7b8b0"
+  white: "#ffffff"
+  good: "#3ecf8e"
+  bad: "#ff5d73"
+
+general:
+  no-permission: "{prefix}{bad}No permission{muted}."
+  player-only: "{prefix}{bad}Player only{muted}."
+  bad-syntax: "{prefix}{bad}Bad syntax{muted}. Use {theme}{usage}"
+  reloaded: "{prefix}{good}Reloaded{muted} config, messages, games, and word lists."
+  saved: "{prefix}{good}Saved{muted}: {theme}{setting}"
+  save-failed: "{prefix}{bad}Save failed{muted}: {theme}{setting}"
+  invalid-game: "{prefix}{bad}Unknown game{muted}: {theme}{game}"
+  no-active-game: "{prefix}{bad}No active game{muted}."
+  stopped: "{prefix}{good}Stopped{muted}: {theme}{game}"
+  stopped-all: "{prefix}{good}Stopped all games{muted}."
+
+help:
+  header: "{prefix}{theme}FoChatGames {muted}commands"
+  player:
+    - "{prefix}{theme}/chatgames help {muted}- Show help"
+    - "{prefix}{theme}/chatgames statistics [player] {muted}- View stats"
+    - "{prefix}{theme}/chatgames toggle {muted}- Toggle messages/sounds"
+  admin:
+    - "{prefix}{theme}/chatgames start [game] {muted}- Start game"
+    - "{prefix}{theme}/chatgames custom <game> <settings...> {muted}- Start custom game"
+    - "{prefix}{theme}/chatgames stop [game] {muted}- Stop game"
+    - "{prefix}{theme}/chatgames stopall {muted}- Stop every active game"
+    - "{prefix}{theme}/chatgames status {muted}- View game status"
+    - "{prefix}{theme}/chatgames logs global [page] [game] {muted}- View logs"
+    - "{prefix}{theme}/chatgames reset <player> [game] {muted}- Reset stats"
+    - "{prefix}{theme}/chatgames reload {muted}- Reload files"
+    - "{prefix}{theme}/chatgames version {muted}- Check version"
+    - "{prefix}{theme}/chatgames editor {muted}- Open editor"
+
+game:
+  already-active: "{prefix}{bad}Game already active{muted}: {theme}{game}"
+  started-manual: "{prefix}{good}Started{muted}: {theme}{game}"
+  custom-started: "{prefix}{good}Started custom game{muted}: {theme}{game}"
+  toggle-on: "{prefix}{good}Enabled{muted} chat game messages and sounds."
+  toggle-off: "{prefix}{bad}Disabled{muted} chat game messages and sounds."
+  wrong-capitalization: "{prefix}{bad}Almost{muted}. Check capitalization."
+  start:
+    chat: "{prefix}{theme}{game} {muted}started! {white}{prompt}"
+    hover: "{prefix}{muted}First correct answer wins. Time limit: {theme}{duration}s"
+    title: "{prefix}{theme}{game}"
+    subtitle: "{prefix}{white}{prompt}"
+    actionbar: "{prefix}{muted}Answer in chat. {theme}{duration}s"
+  win:
+    chat: "{prefix}{theme}{player} {good}won {theme}{game} {muted}in {theme}{time}s{muted}! Answer: {theme}{answer}"
+    hover: "{prefix}{muted}Wins: {theme}{wins} {muted}| Record: {theme}{record}s"
+    title: "{prefix}{good}{player} won"
+    subtitle: "{prefix}{muted}{game} in {theme}{time}s"
+    actionbar: "{prefix}{theme}{player} {muted}won {theme}{game}"
+  end:
+    chat: "{prefix}{bad}{game} ended{muted}. Answer was {theme}{answer}"
+    hover: "{prefix}{muted}No one answered in time."
+    title: "{prefix}{bad}Game ended"
+    subtitle: "{prefix}{muted}Answer: {theme}{answer}"
+    actionbar: "{prefix}{bad}{game} ended"
+
+stats:
+  header: "{prefix}{theme}{player} {muted}statistics"
+  line-total: "{prefix}{muted}Total wins: {theme}{wins} {muted}| Best record: {theme}{record}s"
+  line-game: "{prefix}{muted}{game}: {theme}{wins} wins {muted}| record {theme}{record}s"
+  reset: "{prefix}{good}Reset stats{muted}: {theme}{player}"
+
+logs:
+  header: "{prefix}{theme}Win logs {muted}page {page}"
+  empty: "{prefix}{bad}No logs found{muted}."
+  line: "{prefix}{muted}{date} {theme}{player} {muted}won {theme}{game} {muted}in {theme}{time}s"
+
+status:
+  header: "{prefix}{theme}Game status"
+  line: "{prefix}{muted}{game}: {theme}{last}"
+  never: "never"
+
+editor:
+  opened: "{prefix}{good}Editor opened{muted}."
+  prompt: "{prefix}{muted}Type {theme}{format} {muted}in chat, or {bad}cancel{muted}."
+  native-dialog-fallback: "{prefix}{bad}Native dialogs unavailable{muted}. Using chat input mode."
+  cancelled: "{prefix}{bad}Prompt cancelled{muted}."
+  invalid: "{prefix}{bad}Invalid input{muted}: {theme}{reason}"
+  reward-added: "{prefix}{good}Reward added{muted}: {theme}{game}"
+  reward-deleted: "{prefix}{bad}Reward deleted{muted}: {theme}{game}"
+  world-added: "{prefix}{good}World blacklisted{muted}: {theme}{world}"
+  world-removed: "{prefix}{good}World allowed{muted}: {theme}{world}"

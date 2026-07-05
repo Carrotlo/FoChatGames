@@ -1,0 +1,57 @@
+name: FoChatGames
+description: Modern chat games with rewards, stats, logs, editor, and PlaceholderAPI support.
+version: '${version}'
+
+main: me.foesio.foChatGames.FoChatGames
+api-version: '1.21'
+
+authors: [ Carrotio ]
+softdepend: [ PlaceholderAPI ]
+
+commands:
+  fochatgames:
+    description: FoChatGames commands
+    usage: /fochatgames help
+    aliases: [ chatgames, chatgame, focg, cg ]
+  fochatgamesadmin:
+    description: FoChatGames commands
+    usage: /fochatgamesadmin help
+    aliases: [ chatgamesadmin ]
+
+permissions:
+  fochatgames.admin:
+    description: Access FoChatGames admin command and update notices.
+    default: op
+  fochatgames.help:
+    description: View FoChatGames help.
+    default: true
+  fochatgames.start:
+    description: Start chat games manually.
+    default: op
+  fochatgames.custom:
+    description: Start custom chat games.
+    default: op
+  fochatgames.stop:
+    description: Stop active chat games.
+    default: op
+  fochatgames.stopall:
+    description: Stop all active chat games.
+    default: op
+  fochatgames.statistics:
+    description: View own statistics.
+    default: true
+  fochatgames.statistics.others:
+    description: View other player statistics.
+    default: op
+  fochatgames.toggle:
+    description: Toggle chat game messages and sounds.
+    default: true
+  fochatgames.status:
+    description: View chat game status.
+    default: op
+  fochatgames.logs:
+    description: View win logs.
+    default: op
+  fochatgames.reset:
+    description: Reset player stats.
+    default: op

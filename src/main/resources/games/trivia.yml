@@ -1,0 +1,18 @@
+enabled: true
+chance: 100
+display-name: "Trivia"
+questions:
+  - question: "What block is needed to make a Nether portal?"
+    answer: "obsidian"
+  - question: "What mob explodes near players?"
+    answer: "creeper"
+  - question: "What ore drops diamonds?"
+    answer: "diamond ore"
+  - question: "What dimension has Endermen and the dragon?"
+    answer: "the end"
+  - question: "What item lights a Nether portal?"
+    answer: "flint and steel"
+rewards:
+  - type: console_command
+    chance: 100
+    command: "give %player% emerald 1"
