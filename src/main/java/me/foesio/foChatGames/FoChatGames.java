@@ -22,6 +22,7 @@ import java.sql.SQLException;
 
 public final class FoChatGames extends JavaPlugin {
     private static final String MODRINTH_PROJECT_ID = "fochatgames";
+    private static final int BSTATS_PLUGIN_ID = 32421;
 
     private FoCoreContext core;
     private ConfigManager configs;
@@ -37,6 +38,7 @@ public final class FoChatGames extends JavaPlugin {
     @Override
     public void onEnable() {
         core = FoPluginCore.create(this);
+        core.metrics(BSTATS_PLUGIN_ID);
         configs = new ConfigManager(this);
         configs.loadAll();
         messages = new MessageService(this);
