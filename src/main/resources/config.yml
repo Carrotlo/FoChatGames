@@ -50,21 +50,3 @@ broadcasts:
   subtitles: true
   actionbar: true
   sounds: true
-
-# Default sound keys. Set enabled false to disable that sound.
-sounds:
-  start:
-    enabled: true
-    sound: BLOCK_NOTE_BLOCK_PLING
-    volume: 1.0
-    pitch: 1.2
-  win:
-    enabled: true
-    sound: ENTITY_PLAYER_LEVELUP
-    volume: 1.0
-    pitch: 1.0
-  end:
-    enabled: true
-    sound: BLOCK_NOTE_BLOCK_BASS
-    volume: 0.8
-    pitch: 0.7

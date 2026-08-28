@@ -1,6 +1,5 @@
 package me.foesio.foChatGames.message;
 
-import me.foesio.core.sound.SoundTypes;
 import me.foesio.core.update.UpdateNoticeService;
 import me.foesio.foChatGames.FoChatGames;
 import me.foesio.foChatGames.util.TextUtil;
@@ -8,9 +7,7 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
-import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import java.util.HashMap;
@@ -104,28 +101,7 @@ public final class MessageService {
         if (!plugin.configs().settings().soundBroadcasts) {
             return;
         }
-        ConfigurationSection section = plugin.getConfig().getConfigurationSection(sectionPath);
-        if (section == null || !section.getBoolean("enabled", true)) {
-            return;
-        }
-        Sound sound = sound(section, sectionPath);
-        if (sound == null) {
-            return;
-        }
-        player.playSound(player.getLocation(), sound, (float) section.getDouble("volume", 1.0D), (float) section.getDouble("pitch", 1.0D));
-    }
-
-    private Sound sound(ConfigurationSection section, String sectionPath) {
-        String raw = section.getString("sound", "BLOCK_NOTE_BLOCK_PLING");
-        if (raw == null || raw.isBlank()) {
-            plugin.log().warning("Invalid sound in " + sectionPath + ": " + raw);
-            return null;
-        }
-        Sound sound = SoundTypes.resolve(raw).orElse(null);
-        if (sound == null) {
-            plugin.log().warning("Invalid sound in " + sectionPath + ": " + raw);
-        }
-        return sound;
+        plugin.sounds().play(player, sectionPath);
     }
 
     private String formatWithPrefix(String input, Map<String, String> placeholders) {

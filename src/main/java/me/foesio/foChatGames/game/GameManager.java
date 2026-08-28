@@ -310,15 +310,15 @@ public final class GameManager {
     }
 
     private void broadcastStart(GameSession session) {
-        broadcastGameState("game.start", "sounds.start", gameTokens(session, 0L, null));
+        broadcastGameState("game.start", "game.start", gameTokens(session, 0L, null));
     }
 
     private void broadcastWin(Player winner, GameSession session, long timeMs) {
-        broadcastGameState("game.win", "sounds.win", gameTokens(session, timeMs, winner));
+        broadcastGameState("game.win", "game.win", gameTokens(session, timeMs, winner));
     }
 
     private void broadcastEnd(GameSession session) {
-        broadcastGameState("game.end", "sounds.end", gameTokens(session, 0L, null));
+        broadcastGameState("game.end", "game.end", gameTokens(session, 0L, null));
     }
 
     private void broadcastGameState(String messageBasePath, String soundPath, Map<String, String> tokens) {

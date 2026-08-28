@@ -54,7 +54,10 @@ public final class ChatGamesCommand implements TabExecutor {
             case "version" -> version(sender);
             case "reload" -> reload(sender);
             case "editor" -> editor(sender);
-            default -> plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", "/" + label + " help"));
+            default -> {
+                plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", "/" + label + " help"));
+                playCommandError(sender);
+            }
         }
         return true;
     }
@@ -62,6 +65,7 @@ public final class ChatGamesCommand implements TabExecutor {
     private void help(CommandSender sender) {
         if (!sender.hasPermission("fochatgames.help")) {
             plugin.messages().send(sender, "general.no-permission");
+            playCommandError(sender);
             return;
         }
         plugin.messages().send(sender, "help.header");
@@ -79,11 +83,13 @@ public final class ChatGamesCommand implements TabExecutor {
         if (args.length >= 2 && type == null) {
             plugin.log().warning("Manual start failed for " + sender.getName() + ": invalid game " + args[1]);
             plugin.messages().send(sender, "general.invalid-game", Map.of("game", args[1]));
+            playCommandError(sender);
             return;
         }
         if (!plugin.games().startRandom(type, true)) {
             plugin.log().warning("Manual start failed for " + sender.getName() + ": active game " + activeName());
             plugin.messages().send(sender, "game.already-active", Map.of("game", activeName()));
+            playCommandError(sender);
             return;
         }
         plugin.messages().send(sender, "game.started-manual", Map.of("game", type == null ? "random" : type.key()));
@@ -96,12 +102,14 @@ public final class ChatGamesCommand implements TabExecutor {
         if (args.length < 3) {
             plugin.log().warning("Custom game failed for " + sender.getName() + ": missing arguments.");
             plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", "/chatgames custom <game> <settings...>"));
+            playCommandError(sender);
             return;
         }
         GameType type = GameType.from(args[1]);
         if (type == null) {
             plugin.log().warning("Custom game failed for " + sender.getName() + ": invalid game " + args[1]);
             plugin.messages().send(sender, "general.invalid-game", Map.of("game", args[1]));
+            playCommandError(sender);
             return;
         }
         String joined = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
@@ -110,11 +118,13 @@ public final class ChatGamesCommand implements TabExecutor {
         if (!validCustom(type, tokens)) {
             plugin.log().warning("Custom game failed for " + sender.getName() + ": bad syntax for " + type.key());
             plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", usage));
+            playCommandError(sender);
             return;
         }
         if (!plugin.games().startCustom(type, tokens)) {
             plugin.log().warning("Custom game failed for " + sender.getName() + ": active game " + activeName());
             plugin.messages().send(sender, "game.already-active", Map.of("game", activeName()));
+            playCommandError(sender);
             return;
         }
         plugin.messages().send(sender, "game.custom-started", Map.of("game", type.key()));
@@ -126,12 +136,14 @@ public final class ChatGamesCommand implements TabExecutor {
         }
         if (plugin.games().active() == null) {
             plugin.messages().send(sender, "general.no-active-game");
+            playCommandError(sender);
             return;
         }
         if (args.length >= 2) {
             GameType type = GameType.from(args[1]);
             if (type == null || plugin.games().active().type() != type) {
                 plugin.messages().send(sender, "general.no-active-game");
+                playCommandError(sender);
                 return;
             }
         }
@@ -158,6 +170,7 @@ public final class ChatGamesCommand implements TabExecutor {
         if (args.length >= 2) {
             if (!sender.hasPermission("fochatgames.statistics.others")) {
                 plugin.messages().send(sender, "general.no-permission");
+                playCommandError(sender);
                 return;
             }
             target = Bukkit.getOfflinePlayer(args[1]);
@@ -165,6 +178,7 @@ public final class ChatGamesCommand implements TabExecutor {
             target = player;
         } else {
             plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", "/chatgames statistics <player>"));
+            playCommandError(sender);
             return;
         }
 
@@ -218,6 +232,7 @@ public final class ChatGamesCommand implements TabExecutor {
         }
         if (args.length < 2) {
             plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", "/chatgames logs <global/player> ..."));
+            playCommandError(sender);
             return;
         }
         UUID uuid = null;
@@ -226,6 +241,7 @@ public final class ChatGamesCommand implements TabExecutor {
         if (args[1].equalsIgnoreCase("player")) {
             if (args.length < 3) {
                 plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", "/chatgames logs player <player> [page] [game]"));
+                playCommandError(sender);
                 return;
             }
             OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
@@ -266,6 +282,7 @@ public final class ChatGamesCommand implements TabExecutor {
         }
         if (args.length < 2) {
             plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", "/chatgames reset <player> [game]"));
+            playCommandError(sender);
             return;
         }
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
@@ -288,6 +305,9 @@ public final class ChatGamesCommand implements TabExecutor {
             return;
         }
         plugin.reloadEverything();
+        if (sender instanceof Player player) {
+            plugin.adminSounds().reload(player);
+        }
         plugin.messages().send(sender, "general.reloaded");
     }
 
@@ -311,7 +331,12 @@ public final class ChatGamesCommand implements TabExecutor {
         }
         plugin.log().warning("Command denied for " + sender.getName() + ": missing " + permission);
         plugin.messages().send(sender, "general.no-permission");
+        playCommandError(sender);
         return false;
+    }
+
+    private void playCommandError(CommandSender sender) {
+        plugin.adminSounds().updateError(sender);
     }
 
     private int parsePage(String raw) {

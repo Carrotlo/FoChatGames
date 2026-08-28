@@ -101,6 +101,13 @@ public final class EditorService implements Listener {
     }
 
     public void openMain(Player player) {
+        openMain(player, true);
+    }
+
+    private void openMain(Player player, boolean playOpenSound) {
+        if (playOpenSound) {
+            plugin.editorSounds().open(player);
+        }
         EditorHolder holder = new EditorHolder(Page.MAIN, null, -1);
         Inventory inventory = Bukkit.createInventory(holder, 27, TextUtil.color("&8ғᴏᴄʜᴀᴛɢᴀᴍᴇs ᴇᴅɪᴛᴏʀ"));
         holder.inventory = inventory;
@@ -112,6 +119,13 @@ public final class EditorService implements Listener {
     }
 
     private void openGeneral(Player player) {
+        openGeneral(player, true);
+    }
+
+    private void openGeneral(Player player, boolean playOpenSound) {
+        if (playOpenSound) {
+            plugin.editorSounds().open(player);
+        }
         EditorHolder holder = new EditorHolder(Page.GENERAL, null, -1);
         Inventory inventory = Bukkit.createInventory(holder, 36, TextUtil.color("&8ɢᴇɴᴇʀᴀʟ sᴇᴛᴛɪɴɢs"));
         holder.inventory = inventory;
@@ -132,6 +146,13 @@ public final class EditorService implements Listener {
     }
 
     private void openGames(Player player) {
+        openGames(player, true);
+    }
+
+    private void openGames(Player player, boolean playOpenSound) {
+        if (playOpenSound) {
+            plugin.editorSounds().open(player);
+        }
         EditorHolder holder = new EditorHolder(Page.GAMES, null, -1);
         Inventory inventory = Bukkit.createInventory(holder, 36, TextUtil.color("&8ɢᴀᴍᴇ ᴛʏᴘᴇs"));
         holder.inventory = inventory;
@@ -152,6 +173,13 @@ public final class EditorService implements Listener {
     }
 
     private void openGame(Player player, GameType type) {
+        openGame(player, type, true);
+    }
+
+    private void openGame(Player player, GameType type, boolean playOpenSound) {
+        if (playOpenSound) {
+            plugin.editorSounds().open(player);
+        }
         GameDefinition game = plugin.configs().game(type);
         EditorHolder holder = new EditorHolder(Page.GAME_DETAIL, type, -1);
         Inventory inventory = Bukkit.createInventory(holder, 36, TextUtil.color("&8" + TextUtil.smallCaps(game.displayName())));
@@ -179,14 +207,28 @@ public final class EditorService implements Listener {
     }
 
     private void openWorlds(Player player) {
-        openWorlds(player, 0, "");
+        openWorlds(player, 0, "", true);
     }
 
     private void openWorlds(Player player, int page, String filter) {
+        openWorlds(player, page, filter, true);
+    }
+
+    private void openWorlds(Player player, int page, String filter, boolean playOpenSound) {
+        if (playOpenSound) {
+            plugin.editorSounds().open(player);
+        }
         TriStateSelectionMenus.open(player, worldSelectionRequest(page, filter));
     }
 
     private void openRewards(Player player, GameType type) {
+        openRewards(player, type, true);
+    }
+
+    private void openRewards(Player player, GameType type, boolean playOpenSound) {
+        if (playOpenSound) {
+            plugin.editorSounds().open(player);
+        }
         EditorHolder holder = new EditorHolder(Page.REWARDS, type, -1);
         Inventory inventory = Bukkit.createInventory(holder, 54, TextUtil.color("&8" + TextUtil.smallCaps("rewards " + type.key())));
         holder.inventory = inventory;
@@ -204,12 +246,13 @@ public final class EditorService implements Listener {
     }
 
     private void openDeleteConfirm(Player player, GameType type, int rewardIndex) {
+        plugin.editorSounds().open(player);
         EditorHolder holder = new EditorHolder(Page.CONFIRM_REWARD_DELETE, type, rewardIndex);
         Inventory inventory = Bukkit.createInventory(holder, 27, TextUtil.color("&8" + TextUtil.smallCaps("confirm delete")));
         holder.inventory = inventory;
         fill(inventory);
         inventory.setItem(11, item(Material.LAVA_BUCKET, "&#ff5d73Confirm Delete", List.of("&#ffffffDelete reward #" + (rewardIndex + 1) + ".")));
-        inventory.setItem(15, item(Material.BARRIER, "&#3ecf8eCancel", List.of("&#ffffffReturn to rewards.")));
+        inventory.setItem(22, EditorItemFactory.back());
         player.openInventory(inventory);
     }
 
@@ -284,18 +327,21 @@ public final class EditorService implements Listener {
 
     private void clickGeneral(Player player, int slot) {
         switch (slot) {
-            case 10 -> saveConfig(player, "general.enabled", !plugin.configs().settings().enabled, () -> openGeneral(player));
-            case 11 -> saveConfig(player, "general.auto-start", !plugin.configs().settings().autoStart, () -> openGeneral(player));
+            case 10 -> saveConfig(player, "general.enabled", !plugin.configs().settings().enabled, () -> openGeneral(player, false));
+            case 11 -> saveConfig(player, "general.auto-start", !plugin.configs().settings().autoStart, () -> openGeneral(player, false));
             case 12 -> prompt(player, new EditorPrompt(PromptType.CONFIG_STRING, "general.start-time-seconds", null, "Start Time", plugin.configs().settings().startTimeSeconds, "seconds or range, example 180-300", Page.GENERAL));
             case 13 -> prompt(player, new EditorPrompt(PromptType.CONFIG_INT, "general.game-duration-seconds", null, "Game Duration", String.valueOf(plugin.configs().settings().gameDurationSeconds), "seconds, example 45", Page.GENERAL));
             case 14 -> prompt(player, new EditorPrompt(PromptType.CONFIG_INT, "general.minimum-players", null, "Minimum Players", String.valueOf(plugin.configs().settings().minimumPlayers), "player amount, example 3", Page.GENERAL));
-            case 15 -> saveConfig(player, "general.case-sensitive", !plugin.configs().settings().caseSensitive, () -> openGeneral(player));
-            case 16 -> saveConfig(player, "general.notify-wrong-capitalization", !plugin.configs().settings().notifyWrongCapitalization, () -> openGeneral(player));
-            case 19 -> saveConfig(player, "general.cancel-winning-chat", !plugin.configs().settings().cancelWinningChat, () -> openGeneral(player));
+            case 15 -> saveConfig(player, "general.case-sensitive", !plugin.configs().settings().caseSensitive, () -> openGeneral(player, false));
+            case 16 -> saveConfig(player, "general.notify-wrong-capitalization", !plugin.configs().settings().notifyWrongCapitalization, () -> openGeneral(player, false));
+            case 19 -> saveConfig(player, "general.cancel-winning-chat", !plugin.configs().settings().cancelWinningChat, () -> openGeneral(player, false));
             case 20 -> cyclePriority(player);
             case 21 -> cycleRewardMode(player);
             case 22 -> toggleTitleScreens(player);
-            case 31 -> openMain(player);
+            case 31 -> {
+                plugin.editorSounds().back(player);
+                openMain(player, false);
+            }
             default -> {
             }
         }
@@ -310,14 +356,15 @@ public final class EditorService implements Listener {
             }
         }
         if (slot == 31) {
-            openMain(player);
+            plugin.editorSounds().back(player);
+            openMain(player, false);
         }
     }
 
     private void clickGame(Player player, GameType type, int slot) {
         GameDefinition game = plugin.configs().game(type);
         switch (slot) {
-            case 10 -> saveGame(player, type, "enabled", !game.enabled(), () -> openGame(player, type));
+            case 10 -> saveGame(player, type, "enabled", !game.enabled(), () -> openGame(player, type, false));
             case 11 -> prompt(player, new EditorPrompt(PromptType.GAME_INT, "chance", type, "Chance", String.valueOf(game.chance()), "chance weight, example 100", Page.GAME_DETAIL));
             case 12 -> prompt(player, new EditorPrompt(PromptType.GAME_STRING, "display-name", type, "Display Name", game.displayName(), "display name, example Quick Math", Page.GAME_DETAIL));
             case 13 -> prompt(player, new EditorPrompt(PromptType.GAME_LIST, "word-lists", type, "Word Lists", String.join(",", game.wordLists()), "comma list, example example,minecraft-items", Page.GAME_DETAIL));
@@ -330,13 +377,16 @@ public final class EditorService implements Listener {
             }
             case 15 -> {
                 if (type == GameType.TYPE || type == GameType.UNREVERSE) {
-                    saveGame(player, type, "randomized-text", !game.randomizedText(), () -> openGame(player, type));
+                    saveGame(player, type, "randomized-text", !game.randomizedText(), () -> openGame(player, type, false));
                 } else if (type == GameType.UNSCRAMBLE) {
-                    saveGame(player, type, "smart-scramble", !game.smartScramble(), () -> openGame(player, type));
+                    saveGame(player, type, "smart-scramble", !game.smartScramble(), () -> openGame(player, type, false));
                 }
             }
             case 16 -> openRewards(player, type);
-            case 31 -> openGames(player);
+            case 31 -> {
+                plugin.editorSounds().back(player);
+                openGames(player, false);
+            }
             default -> {
             }
         }
@@ -345,12 +395,19 @@ public final class EditorService implements Listener {
     private void clickWorldSelector(Player player, int rawSlot, TriStateSelectionHolder holder) {
         TriStateSelectionClick click = TriStateSelectionMenus.handleClick(rawSlot, holder);
         if (click.action() == TriStateSelectionActionType.BACK) {
-            openMain(player);
+            plugin.editorSounds().back(player);
+            openMain(player, false);
             return;
         }
         if (click.action() == TriStateSelectionActionType.PREVIOUS_PAGE
                 || click.action() == TriStateSelectionActionType.NEXT_PAGE
                 || click.action() == TriStateSelectionActionType.CLEAR_SEARCH) {
+            switch (click.action()) {
+                case PREVIOUS_PAGE -> plugin.editorSounds().previousPage(player);
+                case NEXT_PAGE -> plugin.editorSounds().nextPage(player);
+                case CLEAR_SEARCH -> plugin.editorSounds().clearSearch(player);
+                default -> { }
+            }
             player.openInventory(TriStateSelectionMenus.createInventory(click.nextRequest()));
             return;
         }
@@ -363,12 +420,14 @@ public final class EditorService implements Listener {
         } else {
             plugin.messages().send(player, "editor.world-removed", Map.of("world", click.displayName()));
         }
-        saveConfig(player, "world-blacklist", worlds, () -> openWorlds(player, click.page(), click.filter()));
+        saveConfig(player, "world-blacklist", worlds, () -> openWorlds(player, click.page(), click.filter(), false),
+                () -> plugin.editorSounds().toggle(player, click.newState() != TriStateSelectionState.DISABLED));
     }
 
     private void clickRewards(Player player, GameType type, int slot, ItemStack cursor, ClickType clickType) {
         if (slot == 49) {
-            openGame(player, type);
+            plugin.editorSounds().back(player);
+            openGame(player, type, false);
             return;
         }
         if (slot == 45) {
@@ -400,11 +459,14 @@ public final class EditorService implements Listener {
             List<Map<String, Object>> rewards = plugin.configs().serializableRewards(type);
             if (index >= 0 && index < rewards.size()) {
                 rewards.remove(index);
-                saveGame(player, type, "rewards", rewards, () -> openRewards(player, type));
-                plugin.messages().send(player, "editor.reward-deleted", Map.of("game", type.key()));
+                saveGame(player, type, "rewards", rewards, () -> {
+                    openRewards(player, type, false);
+                    plugin.messages().send(player, "editor.reward-deleted", Map.of("game", type.key()));
+                }, () -> plugin.editorSounds().delete(player));
             }
-        } else if (slot == 15) {
-            openRewards(player, type);
+        } else if (slot == 22) {
+            plugin.editorSounds().back(player);
+            openRewards(player, type, false);
         }
     }
 
@@ -444,6 +506,7 @@ public final class EditorService implements Listener {
                 () -> handleDialogCancel(player, prompt)
         );
         if (openedNative) {
+            plugin.editorSounds().open(player);
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> clearSuppressedClose(player), 5L);
             return;
         }
@@ -500,6 +563,7 @@ public final class EditorService implements Listener {
 
     private void handleDialogCancel(Player player, EditorPrompt prompt) {
         plugin.messages().send(player, "editor.cancelled");
+        plugin.editorSounds().back(player);
         reopen(player, prompt.returnPage(), prompt.game());
     }
 
@@ -516,6 +580,7 @@ public final class EditorService implements Listener {
     private void handlePrompt(Player player, EditorPrompt prompt, String message) {
         if (message.equalsIgnoreCase("cancel")) {
             plugin.messages().send(player, "editor.cancelled");
+            plugin.editorSounds().back(player);
             reopen(player, prompt.returnPage(), prompt.game());
             return;
         }
@@ -547,6 +612,7 @@ public final class EditorService implements Listener {
     }
 
     private void invalid(Player player, String reason, EditorPrompt prompt) {
+        plugin.editorSounds().error(player);
         plugin.messages().send(player, "editor.invalid", Map.of("reason", reason));
         reopen(player, prompt.returnPage(), prompt.game());
     }
@@ -554,15 +620,17 @@ public final class EditorService implements Listener {
     private void saveRange(Player player, GameType game, String message) {
         String[] split = message.split("-", 2);
         if (split.length != 2) {
+            plugin.editorSounds().error(player);
             plugin.messages().send(player, "editor.invalid", Map.of("reason", "use min-max"));
-            openGame(player, game);
+            openGame(player, game, false);
             return;
         }
         Long min = NumberUtil.parseLarge(split[0]);
         Long max = NumberUtil.parseLarge(split[1]);
         if (min == null || max == null) {
+            plugin.editorSounds().error(player);
             plugin.messages().send(player, "editor.invalid", Map.of("reason", "number expected"));
-            openGame(player, game);
+            openGame(player, game, false);
             return;
         }
         try {
@@ -570,11 +638,13 @@ public final class EditorService implements Listener {
             plugin.configs().saveGameValue(game, "maximum", toSafeInt(max));
             plugin.log().info("Editor saved range by " + player.getName() + ": " + game.key() + "=" + min + "-" + max);
             plugin.messages().send(player, "general.saved", Map.of("setting", game.key() + ".range"));
+            plugin.editorSounds().save(player);
         } catch (IOException exception) {
+            plugin.editorSounds().error(player);
             plugin.log().error("Failed to save range", exception);
             plugin.messages().send(player, "general.save-failed", Map.of("setting", game.key() + ".range"));
         }
-        openGame(player, game);
+        openGame(player, game, false);
     }
 
     private void addCommandReward(Player player, GameType game, String type, String command) {
@@ -584,15 +654,18 @@ public final class EditorService implements Listener {
         reward.put("chance", 100);
         reward.put("command", command);
         rewards.add(reward);
-        saveGame(player, game, "rewards", rewards, () -> openRewards(player, game));
-        plugin.messages().send(player, "editor.reward-added", Map.of("game", game.key()));
+        saveGame(player, game, "rewards", rewards, () -> {
+            openRewards(player, game, false);
+            plugin.messages().send(player, "editor.reward-added", Map.of("game", game.key()));
+        }, () -> plugin.editorSounds().add(player));
     }
 
     private void addHeldReward(Player player, GameType game, ItemStack cursor) {
         var inputItem = CursorItemEditor.cloneItem(cursor);
         if (inputItem.isEmpty()) {
+            plugin.editorSounds().addItemError(player);
             plugin.messages().send(player, "editor.invalid", Map.of("reason", "hold item on cursor"));
-            openRewards(player, game);
+            openRewards(player, game, false);
             return;
         }
         ItemStack rewardItem = inputItem.get();
@@ -604,25 +677,29 @@ public final class EditorService implements Listener {
         reward.put("amount", rewardItem.getAmount());
         reward.put("item", rewardItem);
         rewards.add(reward);
-        saveGame(player, game, "rewards", rewards, () -> openRewards(player, game));
-        plugin.messages().send(player, "editor.reward-added", Map.of("game", game.key()));
+        saveGame(player, game, "rewards", rewards, () -> {
+            openRewards(player, game, false);
+            plugin.messages().send(player, "editor.reward-added", Map.of("game", game.key()));
+        }, () -> plugin.editorSounds().addItem(player));
     }
 
     private void saveRewardChance(Player player, GameType game, int index, String message) {
         Double chance = parseChance(message);
         if (chance == null) {
+            plugin.editorSounds().error(player);
             plugin.messages().send(player, "editor.invalid", Map.of("reason", "chance number expected"));
-            openRewards(player, game);
+            openRewards(player, game, false);
             return;
         }
         List<Map<String, Object>> rewards = plugin.configs().serializableRewards(game);
         if (index < 0 || index >= rewards.size()) {
+            plugin.editorSounds().error(player);
             plugin.messages().send(player, "editor.invalid", Map.of("reason", "reward not found"));
-            openRewards(player, game);
+            openRewards(player, game, false);
             return;
         }
         rewards.get(index).put("chance", compactChance(chance));
-        saveGame(player, game, "rewards", rewards, () -> openRewards(player, game));
+        saveGame(player, game, "rewards", rewards, () -> openRewards(player, game, false));
     }
 
     private Double parseChance(String input) {
@@ -645,15 +722,13 @@ public final class EditorService implements Listener {
         List<String> options = List.of("LOWEST", "LOW", "NORMAL", "HIGH", "HIGHEST", "MONITOR");
         String current = plugin.configs().settings().chatListenerPriority.name();
         String next = options.get((options.indexOf(current) + 1) % options.size());
-        saveConfig(player, "general.chat-listener-priority", next, () -> {
-            openGeneral(player);
-        });
+        saveConfig(player, "general.chat-listener-priority", next, () -> openGeneral(player, false), () -> plugin.editorSounds().cycle(player));
     }
 
     private void cycleRewardMode(Player player) {
         String current = plugin.configs().settings().rewardChanceMode;
         String next = current.equalsIgnoreCase("independent") ? "weighted_one" : "independent";
-        saveConfig(player, "rewards.chance-mode", next, () -> openGeneral(player));
+        saveConfig(player, "rewards.chance-mode", next, () -> openGeneral(player, false), () -> plugin.editorSounds().cycle(player));
     }
 
     private void toggleTitleScreens(Player player) {
@@ -665,8 +740,10 @@ public final class EditorService implements Listener {
             plugin.games().reload();
             plugin.log().info("Editor saved config by " + player.getName() + ": broadcasts.title-screens=" + next);
             plugin.messages().send(player, "general.saved", Map.of("setting", "broadcasts.title-screens"));
-            openGeneral(player);
+            plugin.editorSounds().toggle(player, next);
+            openGeneral(player, false);
         } catch (IOException exception) {
+            plugin.editorSounds().error(player);
             plugin.log().error("Failed to save title screen broadcast toggle", exception);
             plugin.messages().send(player, "general.save-failed", Map.of("setting", "broadcasts.title-screens"));
         }
@@ -684,25 +761,37 @@ public final class EditorService implements Listener {
     }
 
     private void saveConfig(Player player, String path, Object value, Runnable after) {
+        saveConfig(player, path, value, after, () -> playSavedSound(player, value));
+    }
+
+    private void saveConfig(Player player, String path, Object value, Runnable after, Runnable feedback) {
         try {
             plugin.configs().saveConfigValue(path, value);
             plugin.games().reload();
             plugin.log().info("Editor saved config by " + player.getName() + ": " + path + "=" + safeValue(value));
             plugin.messages().send(player, "general.saved", Map.of("setting", path));
+            feedback.run();
             after.run();
         } catch (IOException exception) {
+            plugin.editorSounds().error(player);
             plugin.log().error("Failed to save config path " + path, exception);
             plugin.messages().send(player, "general.save-failed", Map.of("setting", path));
         }
     }
 
     private void saveGame(Player player, GameType type, String path, Object value, Runnable after) {
+        saveGame(player, type, path, value, after, () -> playSavedSound(player, value));
+    }
+
+    private void saveGame(Player player, GameType type, String path, Object value, Runnable after, Runnable feedback) {
         try {
             plugin.configs().saveGameValue(type, path, value);
             plugin.log().info("Editor saved game config by " + player.getName() + ": " + type.key() + "." + path + "=" + safeValue(value));
             plugin.messages().send(player, "general.saved", Map.of("setting", type.key() + "." + path));
+            feedback.run();
             after.run();
         } catch (IOException exception) {
+            plugin.editorSounds().error(player);
             plugin.log().error("Failed to save game path " + type.key() + "." + path, exception);
             plugin.messages().send(player, "general.save-failed", Map.of("setting", type.key() + "." + path));
         }
@@ -710,12 +799,20 @@ public final class EditorService implements Listener {
 
     private void reopen(Player player, Page page, GameType game) {
         switch (page) {
-            case GENERAL -> openGeneral(player);
-            case GAME_DETAIL -> openGame(player, game);
-            case REWARDS -> openRewards(player, game);
-            case GAMES -> openGames(player);
-            default -> openMain(player);
+            case GENERAL -> openGeneral(player, false);
+            case GAME_DETAIL -> openGame(player, game, false);
+            case REWARDS -> openRewards(player, game, false);
+            case GAMES -> openGames(player, false);
+            default -> openMain(player, false);
         }
+    }
+
+    private void playSavedSound(Player player, Object value) {
+        if (value instanceof Boolean enabled) {
+            plugin.editorSounds().toggle(player, enabled);
+            return;
+        }
+        plugin.editorSounds().save(player);
     }
 
     private TriStateSelectionRequest worldSelectionRequest(int page, String filter) {

@@ -14,6 +14,10 @@ import me.foesio.core.FoCoreContext;
 import me.foesio.core.FoPluginCore;
 import me.foesio.core.reload.FoReloadRegistry;
 import me.foesio.core.reload.FoReloadResult;
+import me.foesio.core.sound.FoAdminSounds;
+import me.foesio.core.sound.FoEditorSounds;
+import me.foesio.core.sound.FoSoundMigrations;
+import me.foesio.core.sound.FoSoundService;
 import me.foesio.core.update.UpdateNoticeService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,6 +29,9 @@ public final class FoChatGames extends JavaPlugin {
     private static final int BSTATS_PLUGIN_ID = 32421;
 
     private FoCoreContext core;
+    private FoSoundService sounds;
+    private FoEditorSounds editorSounds;
+    private FoAdminSounds adminSounds;
     private ConfigManager configs;
     private MessageService messages;
     private LogService log;
@@ -38,6 +45,13 @@ public final class FoChatGames extends JavaPlugin {
     @Override
     public void onEnable() {
         core = FoPluginCore.create(this);
+        sounds = core.createSounds(FoSoundMigrations.create()
+                .moveFromConfig("sounds.start", "game.start")
+                .moveFromConfig("sounds.win", "game.win")
+                .moveFromConfig("sounds.end", "game.end")
+                .build());
+        editorSounds = FoEditorSounds.create(sounds);
+        adminSounds = FoAdminSounds.create(sounds);
         core.metrics(BSTATS_PLUGIN_ID);
         configs = new ConfigManager(this);
         configs.loadAll();
@@ -48,10 +62,11 @@ public final class FoChatGames extends JavaPlugin {
         wordLists = new WordListManager(this);
         wordLists.load();
         games = new GameManager(this, wordLists);
-        updates = core.createUpdateNotices(messages.updateMessenger(), MODRINTH_PROJECT_ID);
+        updates = core.createUpdateNotices(messages.updateMessenger(), MODRINTH_PROJECT_ID, adminSounds);
         editor = new EditorService(this);
         reloads = FoReloadRegistry.create()
                 .add("config", configs::loadAll)
+                .add("sounds", sounds::reload)
                 .add("file logging", () -> log.reload(configs.settings().fileLogging))
                 .add("word lists", wordLists::load)
                 .add("games", games::reload)
@@ -137,6 +152,18 @@ public final class FoChatGames extends JavaPlugin {
 
     public FoCoreContext core() {
         return core;
+    }
+
+    public FoSoundService sounds() {
+        return sounds;
+    }
+
+    public FoEditorSounds editorSounds() {
+        return editorSounds;
+    }
+
+    public FoAdminSounds adminSounds() {
+        return adminSounds;
     }
 
     private void registerPlaceholders() {
