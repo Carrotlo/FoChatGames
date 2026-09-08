@@ -6,6 +6,7 @@ import me.foesio.foChatGames.game.GameType;
 import me.foesio.foChatGames.game.Reward;
 import me.foesio.foChatGames.game.TriviaQuestion;
 import me.foesio.core.config.ResourceFiles;
+import me.foesio.core.message.FoMessageService;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -35,6 +36,8 @@ public final class ConfigManager {
         ensureDefaults();
         plugin.reloadConfig();
         messages = YamlConfiguration.loadConfiguration(new File(plugin.getDataFolder(), "messages.yml"));
+        migrateSprites();
+        migrateTitlePrefixes();
         loadSettings();
         loadGames();
     }
@@ -83,6 +86,62 @@ public final class ConfigManager {
 
     private void saveIfMissing(String path) {
         ResourceFiles.saveDefault(plugin, path);
+    }
+
+    private void migrateSprites() {
+        plugin.core().migrations().runToVersion(1, () -> {
+            boolean changed = false;
+            changed |= FoMessageService.addMissingToken(messages, "tokens.prefix", ":paper:", null);
+            changed |= FoMessageService.addMissingToken(messages, "general.reloaded", ":emerald:");
+            changed |= FoMessageService.addMissingToken(messages, "general.saved", ":emerald:");
+            changed |= FoMessageService.addMissingToken(messages, "general.save-failed", ":redstone:");
+            changed |= FoMessageService.addMissingToken(messages, "game.started-manual", ":clock:");
+            changed |= FoMessageService.addMissingToken(messages, "game.custom-started", ":clock:");
+            changed |= FoMessageService.addMissingToken(messages, "game.win.chat", ":emerald:");
+            changed |= FoMessageService.addMissingToken(messages, "editor.opened", ":book:");
+            changed |= FoMessageService.addMissingToken(messages, "editor.reward-added", ":emerald:");
+            changed |= FoMessageService.addMissingToken(messages, "editor.reward-deleted", ":lava_bucket:");
+            if (!changed) {
+                return true;
+            }
+            try {
+                messages.save(new File(plugin.getDataFolder(), "messages.yml"));
+                return true;
+            } catch (IOException exception) {
+                plugin.getLogger().warning("Could not save sprite migration: " + exception.getMessage());
+                return false;
+            }
+        });
+    }
+
+    private void migrateTitlePrefixes() {
+        plugin.core().migrations().runToVersion(2, () -> {
+            boolean changed = false;
+            for (String basePath : List.of("game.start", "game.win", "game.end")) {
+                for (String channel : List.of("title", "subtitle")) {
+                    String path = basePath + "." + channel;
+                    String value = messages.getString(path, null);
+                    if (value == null || !value.contains("{prefix}")) {
+                        continue;
+                    }
+                    String updated = value.replace("{prefix}", "").replaceFirst("^[ \\t]+", "");
+                    if (!updated.equals(value)) {
+                        messages.set(path, updated);
+                        changed = true;
+                    }
+                }
+            }
+            if (!changed) {
+                return true;
+            }
+            try {
+                messages.save(new File(plugin.getDataFolder(), "messages.yml"));
+                return true;
+            } catch (IOException exception) {
+                plugin.getLogger().warning("Could not save title-prefix migration: " + exception.getMessage());
+                return false;
+            }
+        });
     }
 
     private void loadSettings() {

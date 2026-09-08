@@ -8,7 +8,10 @@ import me.foesio.core.dialog.NativeDialogSettings;
 import me.foesio.core.dialog.NativeDialogSupport;
 import me.foesio.core.dialog.TextDialogRequest;
 import me.foesio.core.editor.CursorItemEditor;
+import me.foesio.core.editor.EditorDialogInputs;
 import me.foesio.core.editor.EditorItemFactory;
+import me.foesio.core.gui.GuiButtons;
+import me.foesio.core.message.FoStyle;
 import me.foesio.core.number.LargeNumberParser;
 import me.foesio.core.selector.TriStateSelectionActionType;
 import me.foesio.core.selector.TriStateSelectionClick;
@@ -47,6 +50,7 @@ import java.util.Map;
 import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public final class EditorService implements Listener {
     private final FoChatGames plugin;
@@ -73,7 +77,7 @@ public final class EditorService implements Listener {
     }
 
     public void warnFallbackIfNeeded(Player player) {
-        if (!nativeDialogSupport.configEnabled() || nativeDialogSupport.canUseNativeDialogs()) {
+        if (!nativeDialogSupport.configEnabled() || nativeDialogSupport.canUseNativeDialogs(player)) {
             return;
         }
         if (!nativeDialogSupport.warnOnFallback() || !warnedFallback.add(player.getUniqueId())) {
@@ -112,9 +116,9 @@ public final class EditorService implements Listener {
         Inventory inventory = Bukkit.createInventory(holder, 27, TextUtil.color("&8ғᴏᴄʜᴀᴛɢᴀᴍᴇs ᴇᴅɪᴛᴏʀ"));
         holder.inventory = inventory;
         fill(inventory);
-        inventory.setItem(11, item(Material.COMPARATOR, "&#03fc88General", List.of("&#ffffffEdit timers, toggles, modes.")));
-        inventory.setItem(13, item(Material.BOOK, "&#03fc88Game Types", List.of("&#ffffffEdit enabled games, chances, settings.")));
-        inventory.setItem(15, item(Material.GRASS_BLOCK, "&#03fc88World Blacklist", List.of("&#ffffffClick worlds to allow/block.")));
+        inventory.setItem(11, button(player, FoStyle.THEME, Material.COMPARATOR, "General", List.of("&#ffffffEdit timers, toggles, modes."), "edit general settings"));
+        inventory.setItem(13, button(player, FoStyle.THEME, Material.BOOK, "Game Types", List.of("&#ffffffEdit enabled games, chances, settings."), "manage game types"));
+        inventory.setItem(15, button(player, FoStyle.THEME, Material.GRASS_BLOCK, "World Blacklist", List.of("&#ffffffClick worlds to allow/block."), "configure world blacklist"));
         player.openInventory(inventory);
     }
 
@@ -130,18 +134,18 @@ public final class EditorService implements Listener {
         Inventory inventory = Bukkit.createInventory(holder, 36, TextUtil.color("&8ɢᴇɴᴇʀᴀʟ sᴇᴛᴛɪɴɢs"));
         holder.inventory = inventory;
         fill(inventory);
-        inventory.setItem(10, toggle("Plugin Enabled", plugin.configs().settings().enabled));
-        inventory.setItem(11, toggle("Auto Start", plugin.configs().settings().autoStart));
-        inventory.setItem(12, item(Material.CLOCK, "&#03fc88Start Time", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().startTimeSeconds, "&#ffffffClick to type seconds or range.")));
-        inventory.setItem(13, item(Material.REPEATER, "&#03fc88Game Duration", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().gameDurationSeconds + "s", "&#ffffffClick to type seconds.")));
-        inventory.setItem(14, item(Material.PLAYER_HEAD, "&#03fc88Minimum Players", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().minimumPlayers, "&#ffffffClick to type amount.")));
-        inventory.setItem(15, toggle("Case Sensitive", plugin.configs().settings().caseSensitive));
-        inventory.setItem(16, toggle("Wrong Caps Notice", plugin.configs().settings().notifyWrongCapitalization));
-        inventory.setItem(19, toggle("Cancel Winning Chat", plugin.configs().settings().cancelWinningChat));
-        inventory.setItem(20, item(Material.NAME_TAG, "&#03fc88Chat Priority", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().chatListenerPriority.name(), "&#ffffffClick to cycle.")));
-        inventory.setItem(21, item(Material.EMERALD, "&#03fc88Reward Mode", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().rewardChanceMode, "&#ffffffClick to cycle.")));
-        inventory.setItem(22, toggle("Title Screens", plugin.configs().settings().titleBroadcasts || plugin.configs().settings().subtitleBroadcasts));
-        inventory.setItem(31, EditorItemFactory.back());
+        inventory.setItem(10, toggle(player, "Plugin Enabled", plugin.configs().settings().enabled));
+        inventory.setItem(11, toggle(player, "Auto Start", plugin.configs().settings().autoStart));
+        inventory.setItem(12, button(player, FoStyle.THEME, Material.CLOCK, "Start Time", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().startTimeSeconds, "&#ffffffClick to type seconds or range."), "edit start time"));
+        inventory.setItem(13, button(player, FoStyle.THEME, Material.REPEATER, "Game Duration", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().gameDurationSeconds + "s", "&#ffffffClick to type seconds."), "edit game duration"));
+        inventory.setItem(14, button(player, FoStyle.THEME, Material.PLAYER_HEAD, "Minimum Players", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().minimumPlayers, "&#ffffffClick to type amount."), "edit minimum players"));
+        inventory.setItem(15, toggle(player, "Case Sensitive", plugin.configs().settings().caseSensitive));
+        inventory.setItem(16, toggle(player, "Wrong Caps Notice", plugin.configs().settings().notifyWrongCapitalization));
+        inventory.setItem(19, toggle(player, "Cancel Winning Chat", plugin.configs().settings().cancelWinningChat));
+        inventory.setItem(20, button(player, FoStyle.THEME, Material.NAME_TAG, "Chat Priority", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().chatListenerPriority.name(), "&#ffffffClick to cycle."), "cycle chat priority"));
+        inventory.setItem(21, button(player, FoStyle.THEME, Material.EMERALD, "Reward Mode", List.of("&#ffffffCurrent: &#03fc88" + plugin.configs().settings().rewardChanceMode, "&#ffffffClick to cycle."), "cycle reward mode"));
+        inventory.setItem(22, toggle(player, "Title Screens", plugin.configs().settings().titleBroadcasts || plugin.configs().settings().subtitleBroadcasts));
+        inventory.setItem(31, GuiButtons.back(player));
         player.openInventory(inventory);
     }
 
@@ -162,13 +166,13 @@ public final class EditorService implements Listener {
         for (GameType type : GameType.values()) {
             GameDefinition game = plugin.configs().game(type);
             Material material = game.enabled() ? Material.LIME_DYE : Material.RED_DYE;
-            inventory.setItem(slots[index++], item(material, "&#03fc88" + game.displayName(), List.of(
+            inventory.setItem(slots[index++], button(player, game.enabled() ? FoStyle.GOOD : FoStyle.BAD, material, game.displayName(), List.of(
                     "&#ffffffEnabled: " + state(game.enabled()),
                     "&#ffffffChance: &#03fc88" + game.chance(),
                     "&#ffffffClick to edit."
-            )));
+            ), "edit game settings"));
         }
-        inventory.setItem(31, EditorItemFactory.back());
+        inventory.setItem(31, GuiButtons.back(player));
         player.openInventory(inventory);
     }
 
@@ -185,24 +189,24 @@ public final class EditorService implements Listener {
         Inventory inventory = Bukkit.createInventory(holder, 36, TextUtil.color("&8" + TextUtil.smallCaps(game.displayName())));
         holder.inventory = inventory;
         fill(inventory);
-        inventory.setItem(10, toggle("Enabled", game.enabled()));
-        inventory.setItem(11, item(Material.GOLD_NUGGET, "&#03fc88Chance", List.of("&#ffffffCurrent: &#03fc88" + game.chance(), "&#ffffffClick to type weight.")));
-        inventory.setItem(12, item(Material.PAPER, "&#03fc88Display Name", List.of("&#ffffffCurrent: &#03fc88" + game.displayName(), "&#ffffffClick to type name.")));
-        inventory.setItem(13, item(Material.BOOK, "&#03fc88Word Lists", List.of("&#ffffffCurrent: &#03fc88" + String.join(", ", game.wordLists()), "&#ffffffClick to type comma list.")));
+        inventory.setItem(10, toggle(player, "Enabled", game.enabled()));
+        inventory.setItem(11, button(player, FoStyle.THEME, Material.GOLD_NUGGET, "Chance", List.of("&#ffffffCurrent: &#03fc88" + game.chance(), "&#ffffffClick to type weight."), "edit chance"));
+        inventory.setItem(12, button(player, FoStyle.THEME, Material.PAPER, "Display Name", List.of("&#ffffffCurrent: &#03fc88" + game.displayName(), "&#ffffffClick to type name."), "edit display name"));
+        inventory.setItem(13, button(player, FoStyle.THEME, Material.BOOK, "Word Lists", List.of("&#ffffffCurrent: &#03fc88" + String.join(", ", game.wordLists()), "&#ffffffClick to type comma list."), "edit word lists"));
         if (type == GameType.COMPLETION) {
-            inventory.setItem(14, item(Material.SHEARS, "&#03fc88Missing Percent", List.of("&#ffffffCurrent: &#03fc88" + game.missingPercent() + "%", "&#ffffffClick to type percent.")));
+            inventory.setItem(14, button(player, FoStyle.THEME, Material.SHEARS, "Missing Percent", List.of("&#ffffffCurrent: &#03fc88" + game.missingPercent() + "%", "&#ffffffClick to type percent."), "edit missing percent"));
         }
         if (type == GameType.GUESS_THE_NUMBER || type == GameType.MATH) {
-            inventory.setItem(14, item(Material.COMPASS, "&#03fc88Range", List.of("&#ffffffCurrent: &#03fc88" + game.minimum() + "-" + game.maximum(), "&#ffffffClick to type min-max.")));
+            inventory.setItem(14, button(player, FoStyle.THEME, Material.COMPASS, "Range", List.of("&#ffffffCurrent: &#03fc88" + game.minimum() + "-" + game.maximum(), "&#ffffffClick to type min-max."), "edit range"));
         }
         if (type == GameType.TYPE || type == GameType.UNREVERSE) {
-            inventory.setItem(15, toggle("Randomized Text", game.randomizedText()));
+            inventory.setItem(15, toggle(player, "Randomized Text", game.randomizedText()));
         }
         if (type == GameType.UNSCRAMBLE) {
-            inventory.setItem(15, toggle("Smart Scramble", game.smartScramble()));
+            inventory.setItem(15, toggle(player, "Smart Scramble", game.smartScramble()));
         }
-        inventory.setItem(16, item(Material.CHEST, "&#03fc88Rewards", List.of("&#ffffffAdd, delete, and inspect rewards.")));
-        inventory.setItem(31, EditorItemFactory.back());
+        inventory.setItem(16, button(player, FoStyle.THEME, Material.CHEST, "Rewards", List.of("&#ffffffAdd, delete, and inspect rewards."), "manage rewards"));
+        inventory.setItem(31, GuiButtons.back(player));
         player.openInventory(inventory);
     }
 
@@ -236,12 +240,12 @@ public final class EditorService implements Listener {
         List<Map<String, Object>> rewards = plugin.configs().serializableRewards(type);
         for (int index = 0; index < Math.min(28, rewards.size()); index++) {
             Map<String, Object> reward = rewards.get(index);
-            inventory.setItem(10 + index + (index / 7) * 2, item(Material.PAPER, "&#03fc88Reward #" + (index + 1), rewardLore(reward)));
+            inventory.setItem(10 + index + (index / 7) * 2, button(player, FoStyle.THEME, Material.PAPER, "Reward #" + (index + 1), rewardLore(reward), "edit reward"));
         }
-        inventory.setItem(45, item(Material.COMMAND_BLOCK, "&#03fc88Add Console Command", List.of("&#ffffffClick to type command.", "&#ffffffUse %player% for winner.")));
-        inventory.setItem(46, item(Material.PLAYER_HEAD, "&#03fc88Add Player Command", List.of("&#ffffffClick to type command.", "&#ffffffUse %player% for winner.")));
-        inventory.setItem(47, item(Material.CHEST, "&#03fc88Add Held Item", List.of("&#ffffffHold item on cursor.", "&#ffffffClick this button.")));
-        inventory.setItem(49, EditorItemFactory.back());
+        inventory.setItem(45, button(player, FoStyle.GOOD, Material.COMMAND_BLOCK, "Add Console Command", List.of("&#ffffffClick to type command.", "&#ffffffUse %player% for winner."), "add console command"));
+        inventory.setItem(46, button(player, FoStyle.GOOD, Material.PLAYER_HEAD, "Add Player Command", List.of("&#ffffffClick to type command.", "&#ffffffUse %player% for winner."), "add player command"));
+        inventory.setItem(47, button(player, FoStyle.GOOD, Material.CHEST, "Add Held Item", List.of("&#ffffffHold item on cursor.", "&#ffffffClick this button."), "add held item reward"));
+        inventory.setItem(49, GuiButtons.back(player));
         player.openInventory(inventory);
     }
 
@@ -251,8 +255,8 @@ public final class EditorService implements Listener {
         Inventory inventory = Bukkit.createInventory(holder, 27, TextUtil.color("&8" + TextUtil.smallCaps("confirm delete")));
         holder.inventory = inventory;
         fill(inventory);
-        inventory.setItem(11, item(Material.LAVA_BUCKET, "&#ff5d73Confirm Delete", List.of("&#ffffffDelete reward #" + (rewardIndex + 1) + ".")));
-        inventory.setItem(22, EditorItemFactory.back());
+        inventory.setItem(11, button(player, FoStyle.BAD, Material.LAVA_BUCKET, "Confirm Delete", List.of("&#ffffffDelete reward #" + (rewardIndex + 1) + "."), "confirm deletion"));
+        inventory.setItem(22, GuiButtons.back(player));
         player.openInventory(inventory);
     }
 
@@ -399,6 +403,28 @@ public final class EditorService implements Listener {
             openMain(player, false);
             return;
         }
+        if (click.action() == TriStateSelectionActionType.SEARCH) {
+            plugin.editorSounds().search(player);
+            TextDialogRequest searchRequest = new TextDialogRequest(
+                    "Search",
+                    List.of("Search loaded and configured worlds."),
+                    "Search",
+                    click.filter(),
+                    "world name",
+                    DialogButton.search(),
+                    DialogButton.cancel("Back"),
+                    320,
+                    300,
+                    64,
+                    true,
+                    true,
+                    false
+            );
+            openTextInputFromInventory(player, searchRequest,
+                    input -> openWorlds(player, 0, input.trim(), false),
+                    () -> openWorlds(player, click.page(), click.filter(), false));
+            return;
+        }
         if (click.action() == TriStateSelectionActionType.PREVIOUS_PAGE
                 || click.action() == TriStateSelectionActionType.NEXT_PAGE
                 || click.action() == TriStateSelectionActionType.CLEAR_SEARCH) {
@@ -408,7 +434,7 @@ public final class EditorService implements Listener {
                 case CLEAR_SEARCH -> plugin.editorSounds().clearSearch(player);
                 default -> { }
             }
-            player.openInventory(TriStateSelectionMenus.createInventory(click.nextRequest()));
+            player.openInventory(TriStateSelectionMenus.createInventory(player, click.nextRequest()));
             return;
         }
         if (click.action() != TriStateSelectionActionType.TOGGLE) {
@@ -480,7 +506,7 @@ public final class EditorService implements Listener {
     }
 
     private void prompt(Player player, EditorPrompt prompt) {
-        if (!nativeDialogSupport.canUseNativeDialogs()) {
+        if (!nativeDialogSupport.canUseNativeDialogs(player)) {
             warnFallbackIfNeeded(player);
             openChatInput(player, prompt);
             return;
@@ -830,13 +856,27 @@ public final class EditorService implements Listener {
                 .cycleOrder(List.of(TriStateSelectionState.ENABLED, TriStateSelectionState.DISABLED))
                 .page(page)
                 .filter(filter)
-                .showSearch(false)
                 .enabledLabel("Allowed")
                 .disabledLabel("Blocked")
                 .clickHint("Click to toggle blacklist.")
                 .emptyTitle("No Worlds")
                 .emptyLore(List.of("No worlds are loaded or configured."))
                 .build();
+    }
+
+    private void openTextInputFromInventory(Player player,
+                                            TextDialogRequest request,
+                                            Consumer<String> onSubmit,
+                                            Runnable onCancel) {
+        EditorDialogInputs.openTextFromInventory(
+                plugin,
+                plugin.core().inventoryCloseSuppressor(),
+                plugin.core().dialogService(),
+                player,
+                request,
+                onSubmit,
+                onCancel
+        );
     }
 
     private List<String> disabledWorlds(TriStateSelectionRequest request) {
@@ -856,10 +896,12 @@ public final class EditorService implements Listener {
         }
     }
 
-    private ItemStack toggle(String name, boolean enabled) {
-        return item(enabled ? Material.LIME_DYE : Material.RED_DYE,
-                (enabled ? "&#3ecf8e" : "&#ff5d73") + name,
-                List.of("&#ffffffCurrent: " + state(enabled), "&#ffffffClick to toggle."));
+    private ItemStack toggle(Player player, String name, boolean enabled) {
+        return EditorItemFactory.toggle(player, name, enabled);
+    }
+
+    private ItemStack button(Player player, String color, Material material, String label, List<String> information, String action) {
+        return EditorItemFactory.button(player, material, color, label, information, action);
     }
 
     private String state(boolean enabled) {

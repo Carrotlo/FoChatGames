@@ -1,5 +1,7 @@
+# Edit optional item icons here. Remove any :icon: token to hide it.
+# Unsupported servers, older Java clients, and Bedrock players automatically receive clean text without item sprites.
 tokens:
-  prefix: "{theme}FoChatGames &8» {muted}"
+  prefix: ":paper: {theme}FoChatGames &8» {muted}"
   theme: "#03fc88"
   muted: "#a7b8b0"
   white: "#ffffff"
@@ -33,33 +35,34 @@ help:
     - "{prefix}{theme}/chatgames logs global [page] [game] {muted}- View logs"
     - "{prefix}{theme}/chatgames reset <player> [game] {muted}- Reset stats"
     - "{prefix}{theme}/chatgames reload {muted}- Reload files"
-    - "{prefix}{theme}/chatgames version {muted}- Check version"
+    - "{prefix}{theme}/chatgames version {muted}- Check for updates"
     - "{prefix}{theme}/chatgames editor {muted}- Open editor"
 
+# Game events and editor feedback are plugin-authored text; item icons are optional.
 game:
   already-active: "{prefix}{bad}Game already active{muted}: {theme}{game}"
-  started-manual: "{prefix}{good}Started{muted}: {theme}{game}"
-  custom-started: "{prefix}{good}Started custom game{muted}: {theme}{game}"
+  started-manual: "{prefix}:clock: {good}Started{muted}: {theme}{game}"
+  custom-started: "{prefix}:clock: {good}Started custom game{muted}: {theme}{game}"
   toggle-on: "{prefix}{good}Enabled{muted} chat game messages and sounds."
   toggle-off: "{prefix}{bad}Disabled{muted} chat game messages and sounds."
   wrong-capitalization: "{prefix}{bad}Almost{muted}. Check capitalization."
   start:
     chat: "{prefix}{theme}{game} {muted}started! {white}{prompt}"
     hover: "{prefix}{muted}First correct answer wins. Time limit: {theme}{duration}s"
-    title: "{prefix}{theme}{game}"
-    subtitle: "{prefix}{white}{prompt}"
+    title: "{theme}{game}"
+    subtitle: "{white}{prompt}"
     actionbar: "{prefix}{muted}Answer in chat. {theme}{duration}s"
   win:
     chat: "{prefix}{theme}{player} {good}won {theme}{game} {muted}in {theme}{time}s{muted}! Answer: {theme}{answer}"
     hover: "{prefix}{muted}Wins: {theme}{wins} {muted}| Record: {theme}{record}s"
-    title: "{prefix}{good}{player} won"
-    subtitle: "{prefix}{muted}{game} in {theme}{time}s"
+    title: "{good}{player} won"
+    subtitle: "{muted}{game} in {theme}{time}s"
     actionbar: "{prefix}{theme}{player} {muted}won {theme}{game}"
   end:
     chat: "{prefix}{bad}{game} ended{muted}. Answer was {theme}{answer}"
     hover: "{prefix}{muted}No one answered in time."
-    title: "{prefix}{bad}Game ended"
-    subtitle: "{prefix}{muted}Answer: {theme}{answer}"
+    title: "{bad}Game ended"
+    subtitle: "{muted}Answer: {theme}{answer}"
     actionbar: "{prefix}{bad}{game} ended"
 
 stats:
@@ -79,12 +82,12 @@ status:
   never: "never"
 
 editor:
-  opened: "{prefix}{good}Editor opened{muted}."
+  opened: "{prefix}:book: {good}Editor opened{muted}."
   prompt: "{prefix}{muted}Type {theme}{format} {muted}in chat, or {bad}cancel{muted}."
   native-dialog-fallback: "{prefix}{bad}Native dialogs unavailable{muted}. Using chat input mode."
   cancelled: "{prefix}{bad}Prompt cancelled{muted}."
   invalid: "{prefix}{bad}Invalid input{muted}: {theme}{reason}"
-  reward-added: "{prefix}{good}Reward added{muted}: {theme}{game}"
-  reward-deleted: "{prefix}{bad}Reward deleted{muted}: {theme}{game}"
+  reward-added: "{prefix}:emerald: {good}Reward added{muted}: {theme}{game}"
+  reward-deleted: "{prefix}:lava_bucket: {bad}Reward deleted{muted}: {theme}{game}"
   world-added: "{prefix}{good}World blacklisted{muted}: {theme}{world}"
   world-removed: "{prefix}{good}World allowed{muted}: {theme}{world}"

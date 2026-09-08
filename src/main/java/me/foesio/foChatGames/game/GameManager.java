@@ -332,8 +332,8 @@ public final class GameManager {
             }
             if (settings.titleBroadcasts || settings.subtitleBroadcasts) {
                 plugin.messages().title(player,
-                        settings.titleBroadcasts ? plugin.messages().formatPathNoPrefix(messageBasePath + ".title", tokens) : "",
-                        settings.subtitleBroadcasts ? plugin.messages().formatPathNoPrefix(messageBasePath + ".subtitle", tokens) : "");
+                        settings.titleBroadcasts ? plugin.messages().formatPathForTitle(messageBasePath + ".title", tokens) : "",
+                        settings.subtitleBroadcasts ? plugin.messages().formatPathForTitle(messageBasePath + ".subtitle", tokens) : "");
             }
             if (settings.actionbarBroadcasts) {
                 plugin.messages().actionbar(player, plugin.messages().formatPathNoPrefix(messageBasePath + ".actionbar", tokens));

@@ -1,6 +1,7 @@
 package me.foesio.foChatGames.message;
 
 import me.foesio.core.update.UpdateNoticeService;
+import me.foesio.core.dialog.DialogIcons;
 import me.foesio.foChatGames.FoChatGames;
 import me.foesio.foChatGames.util.TextUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -35,30 +36,28 @@ public final class MessageService {
 
     public void send(CommandSender sender, String path, String fallback, Map<String, String> placeholders) {
         String body = plugin.configs().messages().getString(path, fallback);
-        sender.sendMessage(formatWithPrefix(body, placeholders));
+        sendRendered(sender, formatWithPrefix(body, placeholders));
     }
 
     public void sendList(CommandSender sender, String path, Map<String, String> placeholders) {
         List<String> lines = plugin.configs().messages().getStringList(path);
         for (String line : lines) {
-            sender.sendMessage(formatWithPrefix(line, placeholders));
+            sendRendered(sender, formatWithPrefix(line, placeholders));
         }
     }
 
     public void sendFixed(CommandSender sender, String template, Map<String, String> placeholders) {
-        sender.sendMessage(formatWithPrefix(template, placeholders));
+        sendRendered(sender, formatWithPrefix(template, placeholders));
     }
 
     public void sendClickableFixed(CommandSender sender, String template, String url, Map<String, String> placeholders) {
         String body = formatWithPrefix(template, placeholders);
         if (!(sender instanceof Player player) || url == null || url.isBlank()) {
-            sender.sendMessage(body);
+            sender.sendMessage(DialogIcons.fallbackText(body));
             return;
         }
-        TextComponent component = new TextComponent(TextComponent.fromLegacyText(body));
-        component.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-        component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(TextUtil.color(token("muted") + "Open Modrinth page"))));
-        player.spigot().sendMessage(component);
+        player.sendMessage(DialogIcons.render(player, body)
+                .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(url)));
     }
 
     public UpdateNoticeService.UpdateMessenger updateMessenger() {
@@ -78,23 +77,26 @@ public final class MessageService {
     public void broadcastGame(String chatPath, String hoverPath, Map<String, String> placeholders) {
         String chat = formatWithPrefix(messagePathText(chatPath), placeholders);
         String hover = formatNoPrefix(messagePathText(hoverPath), placeholders);
-        TextComponent component = new TextComponent(TextComponent.fromLegacyText(chat));
-        component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(hover)));
-
         for (Player player : plugin.getServer().getOnlinePlayers()) {
             if (!plugin.games().canSeeGames(player)) {
                 continue;
             }
-            player.spigot().sendMessage(component);
+            player.sendMessage(DialogIcons.render(player, chat));
         }
     }
 
     public void title(Player player, String title, String subtitle) {
-        player.sendTitle(TextUtil.color(title), TextUtil.color(subtitle), 10, 45, 10);
+        player.sendTitle(
+                DialogIcons.fallbackText(TextUtil.color(stripPrefixToken(title))),
+                DialogIcons.fallbackText(TextUtil.color(stripPrefixToken(subtitle))),
+                10,
+                45,
+                10
+        );
     }
 
     public void actionbar(Player player, String text) {
-        player.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(TextUtil.color(text)));
+        player.sendActionBar(DialogIcons.fallbackText(TextUtil.color(text)));
     }
 
     public void playConfiguredSound(Player player, String sectionPath) {
@@ -120,8 +122,31 @@ public final class MessageService {
         return formatNoPrefix(messagePathText(path), placeholders);
     }
 
+    public String formatPathForTitle(String path, Map<String, String> placeholders) {
+        return formatTitleNoPrefix(messagePathText(path), placeholders);
+    }
+
+    private String formatTitleNoPrefix(String input, Map<String, String> placeholders) {
+        Map<String, String> merged = new HashMap<>(colorTokens());
+        merged.putAll(placeholders);
+        merged.put("prefix", "");
+        return TextUtil.color(TextUtil.tokens(input, merged));
+    }
+
     public String messagePathText(String path) {
         return plugin.configs().messages().getString(path, path);
+    }
+
+    private String stripPrefixToken(String input) {
+        return input == null ? "" : input.replace("{prefix}", "");
+    }
+
+    private void sendRendered(CommandSender sender, String text) {
+        if (sender instanceof Player player) {
+            player.sendMessage(DialogIcons.render(player, text));
+        } else {
+            sender.sendMessage(DialogIcons.fallbackText(text));
+        }
     }
 
     private Map<String, String> colorTokens() {
