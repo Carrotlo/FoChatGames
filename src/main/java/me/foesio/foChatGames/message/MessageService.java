@@ -4,9 +4,11 @@ import me.foesio.core.update.UpdateNoticeService;
 import me.foesio.core.dialog.DialogIcons;
 import me.foesio.foChatGames.FoChatGames;
 import me.foesio.foChatGames.util.TextUtil;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -96,7 +98,15 @@ public final class MessageService {
     }
 
     public void actionbar(Player player, String text) {
-        player.sendActionBar(DialogIcons.fallbackText(TextUtil.color(text)));
+        Component actionBar = DialogIcons.render(player, TextUtil.color(text));
+        try {
+            player.getClass().getMethod("sendActionBar", Component.class).invoke(player, actionBar);
+        } catch (ReflectiveOperationException | LinkageError exception) {
+            player.spigot().sendMessage(
+                    ChatMessageType.ACTION_BAR,
+                    TextComponent.fromLegacyText(DialogIcons.fallbackText(actionBar))
+            );
+        }
     }
 
     public void playConfiguredSound(Player player, String sectionPath) {

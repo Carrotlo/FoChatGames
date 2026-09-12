@@ -77,7 +77,7 @@ public final class EditorService implements Listener {
     }
 
     public void warnFallbackIfNeeded(Player player) {
-        if (!nativeDialogSupport.configEnabled() || nativeDialogSupport.canUseNativeDialogs(player)) {
+        if (!nativeDialogSupport.configEnabled() || nativeDialogSupport.canUseNativeDialogs()) {
             return;
         }
         if (!nativeDialogSupport.warnOnFallback() || !warnedFallback.add(player.getUniqueId())) {
@@ -506,7 +506,7 @@ public final class EditorService implements Listener {
     }
 
     private void prompt(Player player, EditorPrompt prompt) {
-        if (!nativeDialogSupport.canUseNativeDialogs(player)) {
+        if (!nativeDialogSupport.canUseNativeDialogs()) {
             warnFallbackIfNeeded(player);
             openChatInput(player, prompt);
             return;
