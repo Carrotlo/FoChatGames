@@ -2,7 +2,10 @@ package me.foesio.foChatGames.game;
 
 import me.foesio.foChatGames.FoChatGames;
 import me.foesio.foChatGames.api.ChatGameEndEvent;
+import me.foesio.foChatGames.api.ChatGameControlService.StartResult;
+import me.foesio.foChatGames.api.ChatGameFinishedEvent;
 import me.foesio.foChatGames.api.ChatGameStartEvent;
+import me.foesio.foChatGames.api.ChatGameStartedEvent;
 import me.foesio.foChatGames.api.ChatGameWinEvent;
 import me.foesio.foChatGames.config.Settings;
 import me.foesio.foChatGames.storage.PlayerStats;
@@ -35,6 +38,7 @@ public final class GameManager {
     private final Listener chatListener = new Listener() {
     };
     private volatile GameSession active;
+    private boolean starting;
     private BukkitTask timerTask;
     private BukkitTask timeoutTask;
     private long nextRunAtMillis;
@@ -88,41 +92,68 @@ public final class GameManager {
     }
 
     public boolean startRandom(GameType requested, boolean manual) {
-        if (active != null) {
-            return false;
+        return startRandomResult(requested, manual) == StartResult.STARTED;
+    }
+
+    public StartResult startRandomResult(GameType requested, boolean manual) {
+        requireServerThread();
+        if (active != null || starting) {
+            return StartResult.ALREADY_ACTIVE;
         }
         if (!manual && !plugin.configs().settings().enabled) {
             scheduleNext();
-            return false;
+            return StartResult.UNAVAILABLE;
         }
         if (!manual && eligiblePlayerCount() < plugin.configs().settings().minimumPlayers) {
             plugin.log().debug("Skipped auto game: not enough players.");
             scheduleNext();
-            return false;
+            return StartResult.UNAVAILABLE;
         }
 
         GameType type = requested == null ? pickWeightedGame() : requested;
         if (type == null) {
             scheduleNext();
-            return false;
+            return StartResult.NO_GAME_AVAILABLE;
         }
         GameSession session = generate(type, false, List.of());
         if (session == null) {
             scheduleNext();
-            return false;
+            return StartResult.NO_GAME_AVAILABLE;
         }
         return startSession(session);
     }
 
     public boolean startCustom(GameType type, List<String> settings) {
-        if (active != null || type == null) {
+        return startCustomResult(type, settings) == StartResult.STARTED;
+    }
+
+    public StartResult startCustomResult(GameType type, List<String> settings) {
+        requireServerThread();
+        if (active != null || starting) {
+            return StartResult.ALREADY_ACTIVE;
+        }
+        if (type == null) {
+            return StartResult.INVALID_GAME;
+        }
+        if (!validCustomArguments(type, settings)) {
+            return StartResult.INVALID_ARGUMENTS;
+        }
+        GameSession session = generate(type, true, List.copyOf(settings));
+        return session == null ? StartResult.NO_GAME_AVAILABLE : startSession(session);
+    }
+
+    public static boolean validCustomArguments(GameType type, List<String> arguments) {
+        if (type == null || arguments == null || arguments.stream().anyMatch(value -> value == null || value.isBlank())) {
             return false;
         }
-        GameSession session = generate(type, true, settings);
-        return session != null && startSession(session);
+        return switch (type) {
+            case GUESS_THE_NUMBER, MATH, TRIVIA -> arguments.size() >= 2;
+            case COMPLETION, TYPE, UNREVERSE, UNSCRAMBLE -> !arguments.isEmpty();
+        };
     }
 
     public boolean stopActive(boolean broadcastEnd) {
+        requireServerThread();
         GameSession session = active;
         if (session == null) {
             return false;
@@ -133,13 +164,22 @@ public final class GameManager {
             timeoutTask = null;
         }
         if (broadcastEnd) {
-            broadcastEnd(session);
+            try {
+                broadcastEnd(session);
+            } catch (RuntimeException exception) {
+                plugin.log().error("Failed to broadcast game end", exception);
+            }
             plugin.log().info("Game ended without winner: " + session.type().key() + " answer=" + session.answer());
         } else {
             plugin.log().info("Game stopped silently: " + session.type().key());
         }
         Bukkit.getPluginManager().callEvent(new ChatGameEndEvent(session));
-        scheduleNext();
+        if (active == null) {
+            scheduleNext();
+        }
+        Bukkit.getPluginManager().callEvent(new ChatGameFinishedEvent(session.snapshot(),
+                broadcastEnd ? ChatGameFinishedEvent.Outcome.TIMEOUT : ChatGameFinishedEvent.Outcome.STOPPED,
+                null, null, Math.max(0L, System.currentTimeMillis() - session.startedAtMillis()), false));
         return true;
     }
 
@@ -205,28 +245,38 @@ public final class GameManager {
         plugin.log().debug("Next automatic game scheduled in " + delaySeconds + "s.");
     }
 
-    private boolean startSession(GameSession session) {
-        ChatGameStartEvent event = new ChatGameStartEvent(session);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) {
-            plugin.log().warning("Game start cancelled by API: " + session.type().key());
-            scheduleNext();
-            return false;
-        }
-
-        active = session;
-        plugin.database().recordStart(session.type());
-        plugin.log().info("Game started: " + session.type().key() + " prompt=" + session.prompt() + " custom=" + session.custom());
-        broadcastStart(session);
-        if (timeoutTask != null) {
-            timeoutTask.cancel();
-        }
-        timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (active == session) {
-                stopActive(true);
+    private StartResult startSession(GameSession session) {
+        starting = true;
+        try {
+            ChatGameStartEvent event = new ChatGameStartEvent(session);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                plugin.log().warning("Game start cancelled by API: " + session.type().key());
+                scheduleNext();
+                return StartResult.CANCELLED;
             }
-        }, plugin.configs().settings().gameDurationSeconds * 20L);
-        return true;
+
+            active = session;
+            plugin.database().recordStart(session.type());
+            plugin.log().info("Game started: " + session.type().key() + " prompt=" + session.prompt() + " custom=" + session.custom());
+            if (timeoutTask != null) {
+                timeoutTask.cancel();
+            }
+            timeoutTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                if (active == session) {
+                    stopActive(true);
+                }
+            }, plugin.configs().settings().gameDurationSeconds * 20L);
+            try {
+                broadcastStart(session);
+            } catch (RuntimeException exception) {
+                plugin.log().error("Failed to broadcast game start", exception);
+            }
+            Bukkit.getPluginManager().callEvent(new ChatGameStartedEvent(session.snapshot()));
+            return StartResult.STARTED;
+        } finally {
+            starting = false;
+        }
     }
 
     private void win(Player player, GameSession session) {
@@ -246,11 +296,23 @@ public final class GameManager {
             timeoutTask = null;
         }
 
-        plugin.database().recordWin(player.getUniqueId(), player.getName(), session.type(), timeMs);
-        giveRewards(player, session);
-        broadcastWin(player, session, timeMs);
+        boolean statsPersisted = plugin.database().recordWin(player.getUniqueId(), player.getName(), session.type(), timeMs);
+        try {
+            giveRewards(player, session);
+        } catch (RuntimeException exception) {
+            plugin.log().error("Failed to give game rewards", exception);
+        }
+        try {
+            broadcastWin(player, session, timeMs);
+        } catch (RuntimeException exception) {
+            plugin.log().error("Failed to broadcast game win", exception);
+        }
         plugin.log().info("Game won: " + session.type().key() + " winner=" + player.getName() + " timeMs=" + timeMs);
-        scheduleNext();
+        if (active == null) {
+            scheduleNext();
+        }
+        Bukkit.getPluginManager().callEvent(new ChatGameFinishedEvent(session.snapshot(),
+                ChatGameFinishedEvent.Outcome.WIN, player.getUniqueId(), player.getName(), timeMs, statsPersisted));
     }
 
     private void giveRewards(Player player, GameSession session) {
@@ -393,6 +455,12 @@ public final class GameManager {
 
     private boolean blacklisted(Player player) {
         return plugin.configs().settings().worldBlacklist.contains(player.getWorld().getName().toLowerCase(Locale.ROOT));
+    }
+
+    private void requireServerThread() {
+        if (!Bukkit.isPrimaryThread()) {
+            throw new IllegalStateException("Game control must run on the Bukkit server thread");
+        }
     }
 
     private GameSession generate(GameType type, boolean custom, List<String> settings) {

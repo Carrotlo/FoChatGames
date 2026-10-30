@@ -1,6 +1,10 @@
 package me.foesio.foChatGames.game;
 
+import me.foesio.foChatGames.api.ChatGameSnapshot;
+import java.util.UUID;
+
 public final class GameSession {
+    private final UUID id;
     private final GameType type;
     private final String displayName;
     private final String prompt;
@@ -9,6 +13,7 @@ public final class GameSession {
     private final boolean custom;
 
     public GameSession(GameType type, String displayName, String prompt, String answer, boolean custom) {
+        this.id = UUID.randomUUID();
         this.type = type;
         this.displayName = displayName;
         this.prompt = prompt;
@@ -39,5 +44,9 @@ public final class GameSession {
 
     public boolean custom() {
         return custom;
+    }
+
+    public ChatGameSnapshot snapshot() {
+        return new ChatGameSnapshot(id, type.key(), displayName, prompt, startedAtMillis, custom);
     }
 }

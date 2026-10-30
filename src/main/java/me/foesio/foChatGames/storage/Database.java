@@ -133,31 +133,53 @@ public final class Database {
         return starts;
     }
 
-    public synchronized void recordWin(UUID uuid, String name, GameType game, long timeMs) {
+    public synchronized boolean recordWin(UUID uuid, String name, GameType game, long timeMs) {
         ensurePlayer(uuid, name);
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO stats(uuid, game, wins, best_time_ms) VALUES(?, ?, 1, ?) " +
-                        "ON CONFLICT(uuid, game) DO UPDATE SET " +
-                        "wins=wins+1, best_time_ms=CASE WHEN best_time_ms=0 OR excluded.best_time_ms < best_time_ms THEN excluded.best_time_ms ELSE best_time_ms END")) {
-            statement.setString(1, uuid.toString());
-            statement.setString(2, game.key());
-            statement.setLong(3, timeMs);
-            statement.executeUpdate();
+        boolean originalAutoCommit;
+        try {
+            originalAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
         } catch (SQLException exception) {
-            plugin.log().error("Failed to save win stats", exception);
+            plugin.log().error("Failed to begin win transaction", exception);
+            return false;
         }
-
-        try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO win_logs(uuid, name, game, time_ms, created_at) VALUES(?, ?, ?, ?, ?)")) {
-            statement.setString(1, uuid.toString());
-            statement.setString(2, name);
-            statement.setString(3, game.key());
-            statement.setLong(4, timeMs);
-            statement.setLong(5, System.currentTimeMillis());
-            statement.executeUpdate();
+        boolean committed = false;
+        try {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO stats(uuid, game, wins, best_time_ms) VALUES(?, ?, 1, ?) " +
+                            "ON CONFLICT(uuid, game) DO UPDATE SET " +
+                            "wins=wins+1, best_time_ms=CASE WHEN best_time_ms=0 OR excluded.best_time_ms < best_time_ms THEN excluded.best_time_ms ELSE best_time_ms END")) {
+                statement.setString(1, uuid.toString());
+                statement.setString(2, game.key());
+                statement.setLong(3, timeMs);
+                statement.executeUpdate();
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO win_logs(uuid, name, game, time_ms, created_at) VALUES(?, ?, ?, ?, ?)")) {
+                statement.setString(1, uuid.toString());
+                statement.setString(2, name);
+                statement.setString(3, game.key());
+                statement.setLong(4, timeMs);
+                statement.setLong(5, System.currentTimeMillis());
+                statement.executeUpdate();
+            }
+            connection.commit();
+            committed = true;
         } catch (SQLException exception) {
-            plugin.log().error("Failed to save win log", exception);
+            plugin.log().error("Failed to save win stats and log", exception);
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackError) {
+                plugin.log().error("Failed to roll back win transaction", rollbackError);
+            }
+        } finally {
+            try {
+                connection.setAutoCommit(originalAutoCommit);
+            } catch (SQLException exception) {
+                plugin.log().error("Failed to restore database auto-commit", exception);
+            }
         }
+        return committed;
     }
 
     public synchronized PlayerStats stats(UUID uuid) {

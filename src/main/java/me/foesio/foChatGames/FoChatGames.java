@@ -1,6 +1,8 @@
 package me.foesio.foChatGames;
 
 import me.foesio.foChatGames.command.ChatGamesCommand;
+import me.foesio.foChatGames.api.ChatGameControlService;
+import me.foesio.foChatGames.api.ChatGamesService;
 import me.foesio.foChatGames.config.ConfigManager;
 import me.foesio.foChatGames.editor.EditorService;
 import me.foesio.foChatGames.game.GameManager;
@@ -9,6 +11,7 @@ import me.foesio.foChatGames.hook.PlaceholderHook;
 import me.foesio.foChatGames.listener.PlayerJoinListener;
 import me.foesio.foChatGames.message.LogService;
 import me.foesio.foChatGames.message.MessageService;
+import me.foesio.foChatGames.service.ChatGamesApi;
 import me.foesio.foChatGames.storage.Database;
 import me.foesio.core.FoCoreContext;
 import me.foesio.core.FoPluginCore;
@@ -21,6 +24,7 @@ import me.foesio.core.sound.FoSoundService;
 import me.foesio.core.update.UpdateNoticeService;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.ServicePriority;
 
 import java.sql.SQLException;
 
@@ -41,6 +45,7 @@ public final class FoChatGames extends JavaPlugin {
     private UpdateNoticeService updates;
     private EditorService editor;
     private FoReloadRegistry reloads;
+    private ChatGamesApi api;
 
     @Override
     public void onEnable() {
@@ -91,12 +96,19 @@ public final class FoChatGames extends JavaPlugin {
         registerPlaceholders();
 
         games.start();
+        api = new ChatGamesApi(this);
+        Bukkit.getServicesManager().register(ChatGamesService.class, api, this, ServicePriority.Normal);
+        Bukkit.getServicesManager().register(ChatGameControlService.class, api, this, ServicePriority.Normal);
         updates.start();
         log.info("Enabled. Java 21, Spigot/Paper 1.21.x, 26.1.x, and 26.2.x target, SQLite userdata.db.");
     }
 
     @Override
     public void onDisable() {
+        if (api != null) {
+            Bukkit.getServicesManager().unregister(ChatGamesService.class, api);
+            Bukkit.getServicesManager().unregister(ChatGameControlService.class, api);
+        }
         if (games != null) {
             games.stopScheduler();
         }

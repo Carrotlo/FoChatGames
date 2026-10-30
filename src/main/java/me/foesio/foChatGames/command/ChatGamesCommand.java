@@ -2,6 +2,7 @@ package me.foesio.foChatGames.command;
 
 import me.foesio.foChatGames.FoChatGames;
 import me.foesio.foChatGames.game.GameType;
+import me.foesio.foChatGames.game.GameManager;
 import me.foesio.foChatGames.storage.PlayerStats;
 import me.foesio.foChatGames.storage.WinLogEntry;
 import me.foesio.foChatGames.util.CommandTokenizer;
@@ -115,7 +116,7 @@ public final class ChatGamesCommand implements TabExecutor {
         String joined = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length));
         List<String> tokens = CommandTokenizer.tokenize(joined);
         String usage = customUsage(type);
-        if (!validCustom(type, tokens)) {
+        if (!GameManager.validCustomArguments(type, tokens)) {
             plugin.log().warning("Custom game failed for " + sender.getName() + ": bad syntax for " + type.key());
             plugin.messages().send(sender, "general.bad-syntax", Map.of("usage", usage));
             playCommandError(sender);
@@ -349,13 +350,6 @@ public final class ChatGamesCommand implements TabExecutor {
 
     private String activeName() {
         return plugin.games().active() == null ? "none" : plugin.games().active().displayName();
-    }
-
-    private boolean validCustom(GameType type, List<String> tokens) {
-        return switch (type) {
-            case GUESS_THE_NUMBER, MATH, TRIVIA -> tokens.size() >= 2;
-            case COMPLETION, TYPE, UNREVERSE, UNSCRAMBLE -> !tokens.isEmpty();
-        };
     }
 
     private String customUsage(GameType type) {
