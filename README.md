@@ -101,6 +101,19 @@ Main config areas: `general`, `native-dialogs`, `world-blacklist`, `rewards`, `b
 <details>
 <summary><strong>Developer API</strong></summary>
 
+### Maven dependency example
+
+Install the matching `FoChatGames-1.7.jar` locally if it is not in your Maven repository. These coordinates do not claim a published artifact. Use `provided` scope so the server supplies FoChatGames:
+
+```xml
+<dependency>
+  <groupId>me.foesio</groupId>
+  <artifactId>FoChatGames</artifactId>
+  <version>1.7</version>
+  <scope>provided</scope>
+</dependency>
+```
+
 Compile against the matching FoChatGames jar as a `provided` Maven dependency (or
 `compileOnly` in Gradle). Do not shade it into the consumer. FoChatGames is not
 published as a Maven artifact; install the matching jar locally or use a local
@@ -162,5 +175,36 @@ public void onChatGameFinished(ChatGameFinishedEvent event) {
     }
 }
 ~~~
+
+### Complete public API method index
+
+Signatures use short type names; import Fo types from this plugin's `api` package and Bukkit types from Bukkit.
+
+#### `ChatGameControlService`
+
+```java
+ChatGameControlService.StartResult startRandom();
+ChatGameControlService.StartResult start(String);
+ChatGameControlService.StartResult startCustom(String, List<String>);
+ChatGameControlService.StopResult stop();
+```
+
+#### `ChatGamesService`
+
+```java
+Optional<ChatGameSnapshot> activeGame();
+int secondsUntilNext();
+ChatGameStats stats(UUID);
+```
+
+**Other public contract types:** `ChatGameSnapshot`, `ChatGameStats`.
+
+### Complete Bukkit event index
+
+- `ChatGameEndEvent`.
+- `ChatGameFinishedEvent`.
+- `ChatGameStartEvent`.
+- `ChatGameStartedEvent`.
+- `ChatGameWinEvent`.
 
 </details>
