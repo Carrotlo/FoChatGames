@@ -101,9 +101,7 @@ Main config areas: `general`, `native-dialogs`, `world-blacklist`, `rewards`, `b
 <details>
 <summary><strong>Developer API</strong></summary>
 
-### Maven dependency example
-
-Install the matching `FoChatGames-1.7.jar` locally if it is not in your Maven repository. These coordinates do not claim a published artifact. Use `provided` scope so the server supplies FoChatGames:
+Compile against the matching jar (`provided` in Maven, `compileOnly` in Gradle); install it locally if needed. Declare `FoChatGames` in your plugin metadata (`softdepend` for an optional integration).
 
 ```xml
 <dependency>
@@ -114,97 +112,28 @@ Install the matching `FoChatGames-1.7.jar` locally if it is not in your Maven re
 </dependency>
 ```
 
-Compile against the matching FoChatGames jar as a `provided` Maven dependency (or
-`compileOnly` in Gradle). Do not shade it into the consumer. FoChatGames is not
-published as a Maven artifact; install the matching jar locally or use a local
-file dependency. Declare `depend: [FoChatGames]` in a `plugin.yml` consumer, or
-`softdepend: [FoChatGames]` if the integration can run without it. Keep direct
-FoChatGames class references in a separate integration class for optional use.
+```java
+import me.foesio.foChatGames.api.ChatGamesService;
+import me.foesio.foChatGames.api.ChatGameEndEvent;
 
-For a local Maven build, install the matching jar with
-`mvn install:install-file -Dfile=FoChatGames-1.7.jar -DgroupId=me.foesio -DartifactId=FoChatGames -Dversion=1.7 -Dpackaging=jar`,
-then declare `me.foesio:FoChatGames:1.7` with `provided` scope.
+ChatGamesService api = Bukkit.getServicesManager().load(ChatGamesService.class);
+if (api != null) api.activeGame();
 
-Find the two services after FoChatGames enables:
-
-~~~java
-ChatGamesService reads = Bukkit.getServicesManager().load(ChatGamesService.class);
-ChatGameControlService control = Bukkit.getServicesManager().load(ChatGameControlService.class);
-if (reads != null && control != null) {
-    reads.activeGame().ifPresent(game -> getLogger().info(game.gameKey()));
-    ChatGameControlService.StartResult result = control.start("trivia");
-}
-~~~
-
-`ChatGamesService` returns an immutable active-game snapshot without the answer,
-seconds until the next automatic attempt, and stored numeric win counts and best
-times for a UUID. An absent game is `Optional.empty()`; missing stats are zero.
-`ChatGameControlService` starts a weighted random, named, or custom game and can
-silently stop the active game. Its result enums distinguish success, no-op,
-invalid input, cancellation, and unavailable provider. Manual starts follow
-`/chatgames start` semantics: they bypass the automatic enabled and minimum-player
-checks. The caller is responsible for its own permissions.
-
-All service methods must be called on the Bukkit server thread. Off-thread calls
-throw `IllegalStateException`. Read methods also throw if a cached service is
-used after FoChatGames disables; control methods return `UNAVAILABLE`. Services
-are registered after startup and removed on disable. Reacquire them after a
-provider restart. This API does not promise Folia region-thread support.
-
-The existing `ChatGameStartEvent` and `ChatGameWinEvent` are cancellable *before*
-events. `ChatGameStartEvent` fires before the game becomes active;
-`ChatGameWinEvent` fires before stats, rewards, and closure. `ChatGameEndEvent`
-fires after timeout or manual stop, never after a win. Their existing signatures
-and behavior remain available.
-
-`ChatGameStartedEvent` fires after an accepted game is active and its timeout is
-scheduled. `ChatGameFinishedEvent` fires after an accepted win, timeout, or manual
-stop. Its outcome, winner UUID/name (win only), elapsed time, and `statsPersisted`
-describe the result. A win's `statsPersisted` is true only when both win stats
-and the win log committed. Reward commands and item delivery have separate
-failure behavior; the finished event does not guarantee reward delivery. Both
-new events are non-cancellable and synchronous on the Bukkit server thread.
-Snapshots and stats maps are immutable. The snapshot's UUID correlates a start
-with its finish. Cancelled starts and wins produce no new result event.
-
-~~~java
 @EventHandler
-public void onChatGameFinished(ChatGameFinishedEvent event) {
-    if (event.outcome() == ChatGameFinishedEvent.Outcome.WIN && event.statsPersisted()) {
-        UUID winner = event.winnerId();
-    }
+public void onChatGameEndEvent(ChatGameEndEvent event) {
+    Bukkit.getLogger().info(event.getClass().getSimpleName());
 }
-~~~
-
-### Complete public API method index
-
-Signatures use short type names; import Fo types from this plugin's `api` package and Bukkit types from Bukkit.
-
-#### `ChatGameControlService`
-
-```java
-ChatGameControlService.StartResult startRandom();
-ChatGameControlService.StartResult start(String);
-ChatGameControlService.StartResult startCustom(String, List<String>);
-ChatGameControlService.StopResult stop();
 ```
 
-#### `ChatGamesService`
+**API methods** (overloads grouped):
 
-```java
-Optional<ChatGameSnapshot> activeGame();
-int secondsUntilNext();
-ChatGameStats stats(UUID);
-```
+- `ChatGameControlService`: `startRandom`, `start`, `startCustom`, `stop`.
+- `ChatGamesService`: `activeGame`, `secondsUntilNext`, `stats`.
 
-**Other public contract types:** `ChatGameSnapshot`, `ChatGameStats`.
+**Other API types:** `ChatGameSnapshot`, `ChatGameStats`.
 
-### Complete Bukkit event index
+**Events:** `ChatGameEndEvent`, `ChatGameFinishedEvent`, `ChatGameStartEvent`, `ChatGameStartedEvent`, `ChatGameWinEvent`.
 
-- `ChatGameEndEvent`.
-- `ChatGameFinishedEvent`.
-- `ChatGameStartEvent`.
-- `ChatGameStartedEvent`.
-- `ChatGameWinEvent`.
+[Browse API source](src/main/java/me/foesio/foChatGames/api) for signatures and event details.
 
 </details>
